@@ -182,10 +182,17 @@ const TimerRowMenu = ({ timer, onDeleted }) => {
       >
         <ActionList
           items={[
-            {
-              content: timer.isEnabled ? "Disable" : "Enable",
-              onAction: handleToggleEnabled,
-            },
+            // Expired implies isEnabled (see getTimerStatus's precedence),
+            // and an expired timer is already inert on the storefront —
+            // "Disable" would only relabel it, so skip the confusing no-op.
+            ...(timer.status === "expired"
+              ? []
+              : [
+                  {
+                    content: timer.isEnabled ? "Disable" : "Enable",
+                    onAction: handleToggleEnabled,
+                  },
+                ]),
             { content: "Delete", destructive: true, onAction: handleDelete },
           ]}
         />
