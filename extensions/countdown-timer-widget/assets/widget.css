@@ -1,6 +1,16 @@
+/* Reserves the timer's height before it renders so its arrival doesn't shove
+   the page around. Cleared by the script when the timer is hosted on <body>
+   instead (top/bottom), where it occupies no space in the flow.
+   44px covers small and medium; a large timer (56px) still shifts by 12px,
+   since its size isn't known until the config request comes back. */
 [data-countdown-timer-widget] {
   display: block;
   min-height: 44px;
+}
+
+/* The body-hosted wrapper is only a handle for the fixed bar inside it. */
+[data-countdown-timer-host] {
+  display: contents;
 }
 
 .countdown-timer-widget {
@@ -79,4 +89,14 @@
 
 .countdown-timer-widget--pos-bottom {
   bottom: 0;
+}
+
+/* Infinite pulse/shake/flash are exactly what this setting exists to stop. The
+   timer still renders and counts down — it just holds still. */
+@media (prefers-reduced-motion: reduce) {
+  .countdown-timer-widget--urgency-pulse,
+  .countdown-timer-widget--urgency-shake,
+  .countdown-timer-widget--urgency-flash {
+    animation: none;
+  }
 }

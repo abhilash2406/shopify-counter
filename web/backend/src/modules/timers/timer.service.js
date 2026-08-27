@@ -2,7 +2,7 @@ import { Timer } from "../../models/Timer.js";
 import { NotFound } from "../../common/exceptions/index.js";
 import { sanitizeTimerInput } from "../../utils/sanitize.js";
 import { getTimerStatus } from "../../utils/timerStatus.js";
-import { matchesTargeting } from "../../utils/targeting.js";
+import { matchesTargeting, toCollectionList } from "../../utils/targeting.js";
 import { TIMER_PAGE_SIZE, validateTimerInput } from "./timer.validation.js";
 
 /**
@@ -71,9 +71,10 @@ export const deleteTimer = async (shop, id) => {
 
 export const findApplicableTimer = async (
   shop,
-  { productId, collectionId } = {}
+  { productId, collectionId, collectionIds } = {}
 ) => {
   const now = new Date();
+  const collections = toCollectionList(collectionId, collectionIds);
 
   const targetingOr = [{ "targeting.mode": "all" }];
   if (productId) {
@@ -82,10 +83,10 @@ export const findApplicableTimer = async (
       "targeting.resourceIds": productId,
     });
   }
-  if (collectionId) {
+  if (collections.length) {
     targetingOr.push({
       "targeting.mode": "collections",
-      "targeting.resourceIds": collectionId,
+      "targeting.resourceIds": { $in: collections },
     });
   }
 
@@ -98,7 +99,7 @@ export const findApplicableTimer = async (
   const active = candidates.filter(
     (timer) =>
       getTimerStatus(timer, now) === "active" &&
-      matchesTargeting(timer, { productId, collectionId })
+      matchesTargeting(timer, { productId, collectionIds: collections })
   );
 
   if (!active.length) return null;

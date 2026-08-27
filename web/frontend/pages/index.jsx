@@ -13,7 +13,8 @@ export default function Dashboard() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  const [offset, setOffset] = useState(0);the
+  // Paging is applied by the API, so it belongs to the query key.
+  const [offset, setOffset] = useState(0);
 
   useDisableModalBackdropClose(createModalOpen);
 

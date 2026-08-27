@@ -1,8 +1,22 @@
 {{ 'widget.css' | asset_url | stylesheet_tag }}
 
+{%- liquid
+  # Collection targeting needs the collections of the page being viewed. On a
+  # product page that is every collection the product belongs to; on a
+  # collection page the block sits in, it is that collection.
+  assign timer_product = block.settings.product
+  assign timer_collection_ids = ''
+  if timer_product != blank
+    assign timer_collection_ids = timer_product.collections | map: 'id' | join: ','
+  elsif collection != blank
+    assign timer_collection_ids = collection.id
+  endif
+-%}
+
 <div
   data-countdown-timer-widget
-  data-product-id="{{ block.settings.product.id }}"
+  data-product-id="{{ timer_product.id }}"
+  data-collection-ids="{{ timer_collection_ids }}"
 ></div>
 
 <script src="{{ 'widget.js' | asset_url }}" defer></script>
