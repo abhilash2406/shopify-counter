@@ -119,13 +119,33 @@ function logImpression(timerId) {
   });
 }
 
+// A `position: fixed` bar is only viewport-fixed when no ancestor establishes
+// a containing block. Theme sections routinely set `transform` (Dawn's scroll
+// animations do), which would pin the bar inside the section instead. Hosting
+// it directly on <body> puts it out of reach of whatever the theme does.
+function resolveHost(root, position) {
+  if (position === "inline") return root;
+
+  const host = document.createElement("div");
+  host.setAttribute("data-countdown-timer-host", position);
+  document.body.appendChild(host);
+
+  // The in-flow placeholder reserves height to avoid layout shift, which is
+  // only wanted when the timer actually renders there.
+  root.style.minHeight = "0";
+
+  return host;
+}
+
 async function mount(root) {
-  const { productId, collectionId } = root.dataset;
+  // collectionIds arrives comma-separated: a product sits in many collections,
+  // and a collection-targeted timer matches any one of them.
+  const { productId, collectionIds } = root.dataset;
 
   try {
     const params = new URLSearchParams();
     if (productId) params.set("productId", productId);
-    if (collectionId) params.set("collectionId", collectionId);
+    if (collectionIds) params.set("collectionIds", collectionIds);
 
     const response = await fetch(`${PROXY_BASE}/timer-config?${params.toString()}`);
     if (!response.ok || response.status === 204) return;
@@ -133,7 +153,8 @@ async function mount(root) {
     const config = await response.json();
     if (!config || !config.id) return;
 
-    render(<Countdown config={config} />, root);
+    const position = config.appearance?.position || "inline";
+    render(<Countdown config={config} />, resolveHost(root, position));
     logImpression(config.id);
   } catch {
     // Graceful degradation: a failed fetch should never break the storefront.

@@ -85,6 +85,92 @@ describe("public widget API", () => {
       expect(hit.status).toBe(200);
       expect(hit.body.id).toBe(String(timer._id));
     });
+
+    describe("collection targeting", () => {
+      const seedCollectionTimer = () =>
+        Timer.create({
+          name: "Collection sale",
+          type: "evergreen",
+          durationSeconds: 900,
+          targeting: { mode: "collections", resourceIds: ["sale"] },
+          shop: SHOP,
+        });
+
+      // The storefront block sends every collection the product belongs to.
+      it("matches when the targeted collection is one of several sent", async () => {
+        const timer = await seedCollectionTimer();
+
+        const res = await request(buildApp())
+          .get("/api/public/timer-config")
+          .query({ shop: SHOP, productId: "111", collectionIds: "new,sale,featured" });
+
+        expect(res.status).toBe(200);
+        expect(res.body.id).toBe(String(timer._id));
+      });
+
+      it("does not match when none of them is targeted", async () => {
+        await seedCollectionTimer();
+
+        const res = await request(buildApp())
+          .get("/api/public/timer-config")
+          .query({ shop: SHOP, collectionIds: "new,featured" });
+
+        expect(res.status).toBe(204);
+      });
+
+      // Without this the block sends nothing and the timer never displays —
+      // the bug this endpoint's collection support existed but never received.
+      it("does not match when the page sends no collections at all", async () => {
+        await seedCollectionTimer();
+
+        const res = await request(buildApp())
+          .get("/api/public/timer-config")
+          .query({ shop: SHOP, productId: "111" });
+
+        expect(res.status).toBe(204);
+      });
+
+      it("still accepts the single-id collectionId form", async () => {
+        const timer = await seedCollectionTimer();
+
+        const res = await request(buildApp())
+          .get("/api/public/timer-config")
+          .query({ shop: SHOP, collectionId: "sale" });
+
+        expect(res.status).toBe(200);
+        expect(res.body.id).toBe(String(timer._id));
+      });
+
+      it("ignores blank entries in the list", async () => {
+        const timer = await seedCollectionTimer();
+
+        const res = await request(buildApp())
+          .get("/api/public/timer-config")
+          .query({ shop: SHOP, collectionIds: ",, sale ,," });
+
+        expect(res.status).toBe(200);
+        expect(res.body.id).toBe(String(timer._id));
+      });
+
+      // Product targeting is more specific, so it wins over a collection hit.
+      it("prefers a product-targeted timer over a collection-targeted one", async () => {
+        await seedCollectionTimer();
+        const productTimer = await Timer.create({
+          name: "Product sale",
+          type: "evergreen",
+          durationSeconds: 900,
+          targeting: { mode: "products", resourceIds: ["111"] },
+          shop: SHOP,
+        });
+
+        const res = await request(buildApp())
+          .get("/api/public/timer-config")
+          .query({ shop: SHOP, productId: "111", collectionIds: "sale" });
+
+        expect(res.status).toBe(200);
+        expect(res.body.id).toBe(String(productTimer._id));
+      });
+    });
   });
 
   describe("POST /api/public/impression", () => {

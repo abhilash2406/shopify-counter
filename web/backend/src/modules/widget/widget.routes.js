@@ -29,9 +29,18 @@ router.use(verifyProxySignature);
  *         schema: { type: string }
  *         description: Plain numeric product id of the page being viewed.
  *       - in: query
+ *         name: collectionIds
+ *         schema: { type: string }
+ *         description: >
+ *           Comma-separated plain numeric collection ids for the page being
+ *           viewed — every collection the product belongs to, or the single
+ *           collection on a collection page. A collection-targeted timer
+ *           matches if it targets any one of them. Capped at 50 ids.
+ *         example: '412,998'
+ *       - in: query
  *         name: collectionId
  *         schema: { type: string }
- *         description: Plain numeric collection id of the page being viewed.
+ *         description: Deprecated single-id form; still accepted.
  *     responses:
  *       200:
  *         description: >

@@ -5,9 +5,9 @@ import { findApplicableTimer } from "../timers/timer.service.js";
 
 export const getPublicTimerConfig = async (
   shop,
-  { productId, collectionId }
+  { productId, collectionIds }
 ) => {
-  const timer = await findApplicableTimer(shop, { productId, collectionId });
+  const timer = await findApplicableTimer(shop, { productId, collectionIds });
   if (!timer) return null;
 
   return {

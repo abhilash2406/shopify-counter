@@ -24,4 +24,20 @@ describe("matchesTargeting", () => {
     expect(matchesTargeting(timer, { collectionId: "xyz" })).toBe(false);
     expect(matchesTargeting(timer, { productId: "abc" })).toBe(false);
   });
+
+  // A product page reports every collection the product belongs to, so the
+  // timer only has to target one of them.
+  it("matches when any one of the page's collections is targeted", () => {
+    const timer = {
+      targeting: { mode: "collections", resourceIds: ["sale"] },
+    };
+    expect(
+      matchesTargeting(timer, { collectionIds: ["new", "sale", "featured"] })
+    ).toBe(true);
+    expect(matchesTargeting(timer, { collectionIds: ["new", "featured"] })).toBe(
+      false
+    );
+    expect(matchesTargeting(timer, { collectionIds: [] })).toBe(false);
+    expect(matchesTargeting(timer, {})).toBe(false);
+  });
 });
