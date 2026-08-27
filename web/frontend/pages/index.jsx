@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "react-query";
 import { TimerList, TimerForm, LoadingBar } from "../components";
 import { listTimers, createTimer } from "../utils/api";
 import { useDisableModalBackdropClose } from "../utils/useDisableModalBackdropClose";
+import { useDebouncedValue } from "../utils/useDebouncedValue";
 
 export default function Dashboard() {
   const shopify = useAppBridge();
@@ -15,12 +16,27 @@ export default function Dashboard() {
 
   // Paging is applied by the API, so it belongs to the query key.
   const [offset, setOffset] = useState(0);
+  // searchInput drives the text field instantly; search (debounced) drives the
+  // query so we don't fire a request per keystroke.
+  const [searchInput, setSearchInput] = useState("");
+  const search = useDebouncedValue(searchInput, 300);
+  const [sort, setSort] = useState("newest");
 
   useDisableModalBackdropClose(createModalOpen);
 
+  // A new search or sort invalidates whatever page we were on. Reset during
+  // render (React's recommended pattern for derived state) rather than in an
+  // effect, which would fetch once at the stale offset before correcting.
+  const [pageResetKey, setPageResetKey] = useState(`${search}|${sort}`);
+  const nextPageResetKey = `${search}|${sort}`;
+  if (nextPageResetKey !== pageResetKey) {
+    setPageResetKey(nextPageResetKey);
+    setOffset(0);
+  }
+
   const { data, isLoading, isError, isFetching } = useQuery({
-    queryKey: ["timers", offset],
-    queryFn: () => listTimers({ offset }),
+    queryKey: ["timers", offset, search, sort],
+    queryFn: () => listTimers({ offset, search, sort }),
     keepPreviousData: true,
   });
 
@@ -72,6 +88,10 @@ export default function Dashboard() {
                   Math.max(0, current - (pagination?.limit ?? 10))
                 )
               }
+              searchValue={searchInput}
+              onSearchChange={setSearchInput}
+              sortValue={sort}
+              onSortChange={setSort}
             />
           )}
         </Layout.Section>

@@ -128,7 +128,16 @@ function resolveHost(root, position) {
 
   const host = document.createElement("div");
   host.setAttribute("data-countdown-timer-host", position);
-  document.body.appendChild(host);
+
+  // "top" is prepended and stays in normal flow (sticky, not fixed) so it
+  // pushes the theme's header down like an announcement bar. A fixed bar
+  // appended to <body> would instead float over whatever already occupies
+  // the viewport's top edge — including that header.
+  if (position === "top") {
+    document.body.prepend(host);
+  } else {
+    document.body.appendChild(host);
+  }
 
   // The in-flow placeholder reserves height to avoid layout shift, which is
   // only wanted when the timer actually renders there.

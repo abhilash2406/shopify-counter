@@ -99,9 +99,8 @@ describe("timers API", () => {
     describe("ordering", () => {
       const names = (res) => res.body.data.timers.map((timer) => timer.name);
 
-      // Ordering is no longer selectable, so the only thing to pin is that the
-      // service applies newest-first itself rather than leaving it to Mongo.
-      it("always returns newest first", async () => {
+      // Default order, with no sort param given.
+      it("defaults to newest first", async () => {
         // Distinct createdAt values, inserted in a deliberately unsorted order.
         await Timer.create({ ...validFixedTimerInput({ name: "beta" }), shop: SHOP, createdAt: new Date("2026-02-01") });
         await Timer.create({ ...validFixedTimerInput({ name: "Alpha" }), shop: SHOP, createdAt: new Date("2026-03-01") });
@@ -112,18 +111,88 @@ describe("timers API", () => {
         expect(names(res)).toEqual(["Alpha", "beta", "charlie"]);
       });
 
-      // Search and sort are gone, but an older client may still append them.
-      // The list query ignores unknown keys, so they must be inert, not a 400.
-      it("ignores leftover search and sort params", async () => {
+      it("sorts oldest first", async () => {
+        await Timer.create({ ...validFixedTimerInput({ name: "beta" }), shop: SHOP, createdAt: new Date("2026-02-01") });
+        await Timer.create({ ...validFixedTimerInput({ name: "Alpha" }), shop: SHOP, createdAt: new Date("2026-03-01") });
+        await Timer.create({ ...validFixedTimerInput({ name: "charlie" }), shop: SHOP, createdAt: new Date("2026-01-01") });
+
+        const res = await request(buildApp()).get("/api/timers?sort=oldest");
+
+        expect(names(res)).toEqual(["charlie", "beta", "Alpha"]);
+      });
+
+      it("sorts by name, case-insensitively, ascending and descending", async () => {
+        await Timer.create({ ...validFixedTimerInput({ name: "beta" }), shop: SHOP });
+        await Timer.create({ ...validFixedTimerInput({ name: "Alpha" }), shop: SHOP });
+        await Timer.create({ ...validFixedTimerInput({ name: "charlie" }), shop: SHOP });
+
+        const ascending = await request(buildApp()).get("/api/timers?sort=name-asc");
+        expect(names(ascending)).toEqual(["Alpha", "beta", "charlie"]);
+
+        const descending = await request(buildApp()).get("/api/timers?sort=name-desc");
+        expect(names(descending)).toEqual(["charlie", "beta", "Alpha"]);
+      });
+
+      it("rejects an unknown sort value", async () => {
+        const res = await request(buildApp()).get("/api/timers?sort=bogus");
+
+        expect(res.status).toBe(400);
+        expect(res.body.message).toMatch(/sort must be one of/);
+      });
+    });
+
+    describe("search", () => {
+      const names = (res) => res.body.data.timers.map((timer) => timer.name);
+
+      it("matches by case-insensitive substring of the name", async () => {
         await Timer.create({ ...validFixedTimerInput({ name: "Summer sale" }), shop: SHOP });
+        await Timer.create({ ...validFixedTimerInput({ name: "Black Friday" }), shop: SHOP });
+
+        const res = await request(buildApp()).get("/api/timers?search=summer");
+
+        expect(res.status).toBe(200);
+        expect(names(res)).toEqual(["Summer sale"]);
+      });
+
+      it("scopes pagination totals to the filtered set, not the whole shop", async () => {
+        await Timer.create({ ...validFixedTimerInput({ name: "Summer sale" }), shop: SHOP });
+        await Timer.create({ ...validFixedTimerInput({ name: "Black Friday" }), shop: SHOP });
+
+        const res = await request(buildApp()).get("/api/timers?search=summer");
+
+        expect(res.body.data.pagination).toMatchObject({ total: 1, hasMore: false });
+      });
+
+      it("does not let the search term break out as a regex", async () => {
+        await Timer.create({ ...validFixedTimerInput({ name: "Summer sale" }), shop: SHOP });
+
+        const res = await request(buildApp()).get(
+          `/api/timers?${new URLSearchParams({ search: ".*" }).toString()}`
+        );
+
+        expect(res.status).toBe(200);
+        expect(names(res)).toEqual([]);
+      });
+
+      it("returns everything when search is blank", async () => {
+        await Timer.create({ ...validFixedTimerInput({ name: "Summer sale" }), shop: SHOP });
+        await Timer.create({ ...validFixedTimerInput({ name: "Black Friday" }), shop: SHOP });
+
+        const res = await request(buildApp()).get("/api/timers?search=");
+
+        expect(names(res).sort()).toEqual(["Black Friday", "Summer sale"]);
+      });
+
+      it("combines with sort", async () => {
+        await Timer.create({ ...validFixedTimerInput({ name: "Summer sale" }), shop: SHOP });
+        await Timer.create({ ...validFixedTimerInput({ name: "Summer clearance" }), shop: SHOP });
         await Timer.create({ ...validFixedTimerInput({ name: "Black Friday" }), shop: SHOP });
 
         const res = await request(buildApp()).get(
           "/api/timers?search=summer&sort=name-asc"
         );
 
-        expect(res.status).toBe(200);
-        expect(names(res).sort()).toEqual(["Black Friday", "Summer sale"]);
+        expect(names(res)).toEqual(["Summer clearance", "Summer sale"]);
       });
     });
 

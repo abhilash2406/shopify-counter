@@ -5,18 +5,36 @@ import { getTimerStatus } from "../../utils/timerStatus.js";
 import { matchesTargeting, toCollectionList } from "../../utils/targeting.js";
 import { TIMER_PAGE_SIZE, validateTimerInput } from "./timer.validation.js";
 
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// name-asc/desc use a case-insensitive collation so "beta" sorts with "Beta",
+// not after every capitalized name.
+const SORT_SPECS = {
+  newest: { order: { createdAt: -1 } },
+  oldest: { order: { createdAt: 1 } },
+  "name-asc": { order: { name: 1 }, collation: { locale: "en", strength: 2 } },
+  "name-desc": { order: { name: -1 }, collation: { locale: "en", strength: 2 } },
+};
+
 /**
  * One page of the shop's timers, plus the totals a pager needs.
  * @returns {Promise<{ timers: object[], pagination: { total: number, limit: number, offset: number, hasMore: boolean } }>}
  */
 export const listTimers = async (
   shop,
-  { limit = TIMER_PAGE_SIZE, offset = 0 } = {}
+  { limit = TIMER_PAGE_SIZE, offset = 0, search, sort = "newest" } = {}
 ) => {
   const filter = { shop };
+  if (search) {
+    filter.name = { $regex: escapeRegExp(search), $options: "i" };
+  }
+
+  const { order, collation } = SORT_SPECS[sort] || SORT_SPECS.newest;
+  let rowsQuery = Timer.find(filter).sort(order);
+  if (collation) rowsQuery = rowsQuery.collation(collation);
 
   const [rows, total] = await Promise.all([
-    Timer.find(filter).sort({ createdAt: -1 }).skip(offset).limit(limit).lean(),
+    rowsQuery.skip(offset).limit(limit).lean(),
     Timer.countDocuments(filter),
   ]);
 

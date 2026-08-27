@@ -68,6 +68,9 @@ const timerSchema = z
 // Also the hard cap: an oversized `limit` is a 400, not a silent clamp.
 export const TIMER_PAGE_SIZE = 10;
 
+// Keep in sync with the sort dropdown in web/frontend/components/TimerList.jsx.
+export const SORT_VALUES = ["newest", "oldest", "name-asc", "name-desc"];
+
 // GET /api/timers query. Params arrive as strings, hence `coerce`.
 const listTimersQuerySchema = z.object({
   limit: z.coerce
@@ -83,6 +86,18 @@ const listTimersQuerySchema = z.object({
     .int({ error: "offset must be a whole number" })
     .min(0, { error: "offset must not be negative" })
     .default(0),
+  // Matched against name, case-insensitively. Blank/omitted means no filter.
+  search: z
+    .string()
+    .trim()
+    .max(120, { error: "search must be at most 120 characters" })
+    .optional()
+    .transform((value) => (value ? value : undefined)),
+  sort: z
+    .enum(SORT_VALUES, {
+      error: `sort must be one of ${SORT_VALUES.join(", ")}`,
+    })
+    .default("newest"),
 });
 
 /** Turns a zod error into the BadRequest the API already exposes. */
