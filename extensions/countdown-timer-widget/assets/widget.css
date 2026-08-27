@@ -1,0 +1,82 @@
+[data-countdown-timer-widget] {
+  display: block;
+  min-height: 44px;
+}
+
+.countdown-timer-widget {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-height: 44px;
+  padding: 0.5em 1em;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+
+.countdown-timer-widget__time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.countdown-timer-widget--urgency-pulse {
+  animation: countdown-timer-widget-pulse 1s ease-in-out infinite;
+}
+
+@keyframes countdown-timer-widget-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.countdown-timer-widget--urgency-shake {
+  animation: countdown-timer-widget-shake 0.4s ease-in-out infinite;
+}
+
+@keyframes countdown-timer-widget-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+.countdown-timer-widget--urgency-flash {
+  animation: countdown-timer-widget-flash 0.8s ease-in-out infinite;
+}
+
+@keyframes countdown-timer-widget-flash {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.4); }
+}
+
+.countdown-timer-widget--size-small {
+  font-size: 0.8rem;
+  padding: 0.35em 0.75em;
+  min-height: 36px;
+}
+
+.countdown-timer-widget--size-large {
+  font-size: 1.25rem;
+  padding: 0.75em 1.5em;
+  min-height: 56px;
+}
+
+/* "top"/"bottom" pin the timer to the viewport edge as a full-width bar,
+   instead of rendering inline where the merchant placed the block. */
+.countdown-timer-widget--pos-top,
+.countdown-timer-widget--pos-bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  width: 100%;
+  border-radius: 0;
+  z-index: 999;
+}
+
+.countdown-timer-widget--pos-top {
+  top: 0;
+}
+
+.countdown-timer-widget--pos-bottom {
+  bottom: 0;
+}

@@ -1,0 +1,23 @@
+{{ 'widget.css' | asset_url | stylesheet_tag }}
+
+<div
+  data-countdown-timer-widget
+  data-product-id="{{ block.settings.product.id }}"
+></div>
+
+<script src="{{ 'widget.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Countdown timer",
+  "target": "section",
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product",
+      "autofill": true
+    }
+  ]
+}
+{% endschema %}

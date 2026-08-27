@@ -1,0 +1,27 @@
+.timer-loading-bar-track {
+  width: 240px;
+  height: 6px;
+  border-radius: 999px;
+  background: #e4e5e7;
+  overflow: hidden;
+  position: relative;
+}
+
+.timer-loading-bar-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  border-radius: 999px;
+  background: #2c6ecb;
+  animation: timer-loading-bar-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes timer-loading-bar-slide {
+  0% {
+    left: -40%;
+  }
+  100% {
+    left: 100%;
+  }
+}

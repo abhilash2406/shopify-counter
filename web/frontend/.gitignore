@@ -1,0 +1,13 @@
+# Dependency directory
+node_modules
+
+
+# Logs
+logs
+*.log
+
+# vite build output
+dist/
+
+yarn.lock
+package-lock.json

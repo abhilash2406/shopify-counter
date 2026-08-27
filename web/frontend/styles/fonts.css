@@ -1,0 +1,7 @@
+/* Overrides Polaris's default OS-native font stack with Inter (loaded via
+   Google Fonts in index.html), matching the typeface used in current
+   Shopify Admin. Falls back to the original stack if the font fails to load. */
+:root {
+  --p-font-family-sans: "Inter", -apple-system, BlinkMacSystemFont, "San Francisco",
+    "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
