@@ -75,7 +75,6 @@
    instead of rendering inline where the merchant placed the block. */
 .countdown-timer-widget--pos-top,
 .countdown-timer-widget--pos-bottom {
-  position: fixed;
   left: 0;
   right: 0;
   width: 100%;
@@ -83,11 +82,16 @@
   z-index: 999;
 }
 
+/* Sticky, not fixed: prepended to <body> (see resolveHost in index.jsx), it
+   occupies normal flow and pushes the theme's header down, then stays
+   visible like a fixed bar once you scroll past it. */
 .countdown-timer-widget--pos-top {
+  position: sticky;
   top: 0;
 }
 
 .countdown-timer-widget--pos-bottom {
+  position: fixed;
   bottom: 0;
 }
 
