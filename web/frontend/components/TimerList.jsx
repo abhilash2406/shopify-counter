@@ -7,15 +7,17 @@ import {
   Card,
   EmptyState,
   HorizontalStack,
+  Icon,
   Popover,
   ProgressBar,
   ResourceItem,
   ResourceList,
   Spinner,
   Text,
+  TextField,
   VerticalStack,
 } from "@shopify/polaris";
-import { HorizontalDotsMinor } from "@shopify/polaris-icons";
+import { HorizontalDotsMinor, SearchMinor } from "@shopify/polaris-icons";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { StatusBadge } from "./StatusBadge";
 import { deleteTimer, updateTimer } from "../utils/api";
@@ -32,6 +34,13 @@ const timeFormat = new Intl.DateTimeFormat(undefined, {
   hour: "numeric",
   minute: "2-digit",
 });
+
+const SORT_OPTIONS = [
+  { label: "Newest first", value: "newest" },
+  { label: "Oldest first", value: "oldest" },
+  { label: "Name A–Z", value: "name-asc" },
+  { label: "Name Z–A", value: "name-desc" },
+];
 
 const isSameDay = (a, b) => a.toDateString() === b.toDateString();
 
@@ -192,11 +201,20 @@ export const TimerList = ({
   pagination,
   onNextPage,
   onPreviousPage,
+  searchValue = "",
+  onSearchChange,
+  sortValue = "newest",
+  onSortChange,
 }) => {
   const navigate = useNavigate();
   const now = useNow();
 
-  if (!timers.length) {
+  const isFiltered = Boolean(searchValue);
+
+  // Only the true empty state (shop has never created a timer) gets the
+  // full-page CTA. A search with zero matches still needs the search field
+  // on screen, so it falls through to ResourceList's own empty-search state.
+  if (!timers.length && !isFiltered && (pagination?.total ?? 0) === 0) {
     return (
       <Card>
         <EmptyState
@@ -216,6 +234,23 @@ export const TimerList = ({
         resourceName={{ singular: "timer", plural: "timers" }}
         items={timers}
         loading={loading}
+        filterControl={
+          <TextField
+            label="Search timers"
+            labelHidden
+            placeholder="Search timers by name"
+            value={searchValue}
+            onChange={onSearchChange}
+            prefix={<Icon source={SearchMinor} />}
+            clearButton
+            onClearButtonClick={() => onSearchChange?.("")}
+            autoComplete="off"
+          />
+        }
+        isFiltered={isFiltered}
+        sortValue={sortValue}
+        sortOptions={SORT_OPTIONS}
+        onSortChange={(value) => onSortChange?.(value)}
         pagination={
           pagination && (pagination.hasMore || pagination.offset > 0)
             ? {

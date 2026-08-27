@@ -20,9 +20,13 @@ const request = async (path, options = {}) => {
 
 export const TIMERS_PER_PAGE = 10;
 
-export const listTimers = ({ offset } = {}) => {
-  const qs = offset ? `?offset=${offset}` : "";
-  return request(`/api/timers${qs}`);
+export const listTimers = ({ offset, search, sort } = {}) => {
+  const params = new URLSearchParams();
+  if (offset) params.set("offset", offset);
+  if (search) params.set("search", search);
+  if (sort) params.set("sort", sort);
+  const qs = params.toString();
+  return request(`/api/timers${qs ? `?${qs}` : ""}`);
 };
 
 export const getTimer = (id) => request(`/api/timers/${id}`);

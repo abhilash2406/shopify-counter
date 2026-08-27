@@ -15,9 +15,6 @@ router.use(attachShop);
  *     description: >
  *       Each timer is annotated with a computed `status`. The shop comes from
  *       the verified Shopify session, never a parameter.
- *
- *
- *       Results are always ordered newest-first; the order is not selectable.
  *     parameters:
  *       - in: query
  *         name: limit
@@ -29,6 +26,17 @@ router.use(attachShop);
  *         name: offset
  *         schema: { type: integer, minimum: 0, default: 0 }
  *         description: Number of records to skip before the page starts.
+ *       - in: query
+ *         name: search
+ *         schema: { type: string, maxLength: 120 }
+ *         description: Case-insensitive substring match against the timer name.
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [newest, oldest, name-asc, name-desc]
+ *           default: newest
+ *         description: Sort order applied before paging.
  *     responses:
  *       200:
  *         description: The shop's timers

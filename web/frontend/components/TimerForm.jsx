@@ -227,7 +227,7 @@ export const TimerForm = ({
               clearError("name");
             }}
             autoComplete="off"
-            helpText="Internal name shown only in this dashboard."
+            // helpText="Internal name shown only in this dashboard."
             error={errors.name}
           />
           <ChoiceList
