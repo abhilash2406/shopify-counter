@@ -190,6 +190,8 @@ npm run deploy         # shopify app deploy — pushes app config + extensions
 ### API docs
 With the backend running and `SWAGGER_PASSWORD` set, interactive API docs
 are available at `http://localhost:<PORT>/api-docs` (basic-auth protected).
+For a quick static reference without running the server, see
+[web/backend/API.md](web/backend/API.md).
 
 ---
 
