@@ -286,6 +286,16 @@ const spec = swaggerJsdoc({
             },
           },
         },
+        Conflict: {
+          description:
+            "Optimistic-concurrency check failed — the resource was " +
+            "changed elsewhere since the caller last fetched it",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/Error" },
+            },
+          },
+        },
         TooManyRequests: {
           description: "Rate limit exceeded (120 requests/minute per IP)",
           content: {

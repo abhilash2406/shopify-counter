@@ -61,10 +61,12 @@ export const createTimer = asyncHandler(async (req, res) => {
 
 // to update a timer
 export const updateTimer = asyncHandler(async (req, res) => {
+  const { expectedUpdatedAt, ...input } = req.body;
   const timer = await timerService.updateTimer(
     req.shop,
     req.params.id,
-    req.body
+    input,
+    expectedUpdatedAt
   );
   res.json(goodResponse({ timer }, "Timer updated successfully."));
 });
