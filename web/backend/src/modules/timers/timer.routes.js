@@ -157,7 +157,11 @@ router.get("/:id", timerController.getTimer);
  *   patch:
  *     tags: [Timers]
  *     summary: Partially update a timer
- *     description: Same validation as create, applied to the merged result.
+ *     description: >
+ *       Same validation as create, applied to the merged result. Pass
+ *       `expectedUpdatedAt` (the `updatedAt` you last fetched) to guard
+ *       against clobbering a change made elsewhere in the meantime — omit it
+ *       to update unconditionally.
  *     parameters:
  *       - in: path
  *         name: id
@@ -169,7 +173,18 @@ router.get("/:id", timerController.getTimer);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/TimerInput'
+ *             allOf:
+ *               - $ref: '#/components/schemas/TimerInput'
+ *               - type: object
+ *                 properties:
+ *                   expectedUpdatedAt:
+ *                     type: string
+ *                     format: date-time
+ *                     description: >
+ *                       Optional optimistic-concurrency check. If present and
+ *                       it no longer matches the timer's current `updatedAt`,
+ *                       the request fails with 409 instead of overwriting the
+ *                       newer change.
  *           example:
  *             isEnabled: false
  *     responses:
@@ -193,6 +208,8 @@ router.get("/:id", timerController.getTimer);
  *         $ref: '#/components/responses/Unauthorized'
  *       404:
  *         $ref: '#/components/responses/NotFound'
+ *       409:
+ *         $ref: '#/components/responses/Conflict'
  */
 router.patch("/:id", timerController.updateTimer);
 

@@ -66,7 +66,7 @@ counter-app/
 | Data fetching / caching | `react-query` |
 | Internationalization | `i18next`, `react-i18next`, `@shopify/i18next-shopify`, `@formatjs/*` |
 | Styling | Polaris components + custom CSS (`styles/`) |
-| Testing | Vitest + `jsdom` + `vi-fetch` (env present for component/unit tests) |
+| Testing | **Jest** + `jest-environment-jsdom` + React Testing Library (`@testing-library/react`, `@testing-library/user-event`, `@testing-library/jest-dom`) |
 | Linting/formatting | Stylelint (`@shopify/stylelint-polaris`), Prettier |
 
 ### `extensions/` — Storefront theme app extension

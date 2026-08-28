@@ -28,7 +28,10 @@ export default function EditTimer() {
     setSaving(true);
     setError(null);
     try {
-      await updateTimer(id, values);
+      await updateTimer(id, {
+        ...values,
+        expectedUpdatedAt: data.timer.updatedAt,
+      });
       shopify.toast.show("Timer updated");
       navigate("/");
     } catch (err) {

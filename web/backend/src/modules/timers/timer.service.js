@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { Timer } from "../../models/Timer.js";
-import { NotFound } from "../../common/exceptions/index.js";
+import { Conflict, NotFound } from "../../common/exceptions/index.js";
 import { sanitizeTimerInput } from "../../utils/sanitize.js";
 import { getTimerStatus } from "../../utils/timerStatus.js";
 import { matchesTargeting, toCollectionList } from "../../utils/targeting.js";
@@ -71,8 +71,15 @@ export const createTimer = async (shop, input) => {
 
 
 // edit timer
-export const updateTimer = async (shop, id, input) => {
+export const updateTimer = async (shop, id, input, expectedUpdatedAt) => {
   const timer = await getTimer(shop, id);
+
+  if (expectedUpdatedAt && timer.updatedAt.toISOString() !== expectedUpdatedAt) {
+    throw new Conflict(
+      "This timer was changed elsewhere since you loaded it. Refresh and try again."
+    );
+  }
+
   const merged = { ...timer.toObject(), ...input };
   validateTimerInput(merged);
 

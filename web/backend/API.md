@@ -40,6 +40,7 @@ directly, so that shape is a fixed contract.
 | 401 | Missing/invalid session |
 | 403 | Invalid App Proxy signature |
 | 404 | Not found, or not owned by the authenticated shop |
+| 409 | Optimistic-concurrency conflict (stale `expectedUpdatedAt` on PATCH) |
 | 429 | Rate limit exceeded |
 | 500 | Unexpected server error |
 
@@ -52,7 +53,7 @@ directly, so that shape is a fixed contract.
 | GET | `/api/timers` | List the shop's timers. Query: `limit` (max 10, default 10), `offset`, `search` (name substring), `sort` (`newest`\|`oldest`\|`name-asc`\|`name-desc`). Each timer includes a computed `status`. |
 | POST | `/api/timers` | Create a timer. Body: `name`, `type` (`fixed`\|`evergreen`), `startDate`/`endDate` (fixed) or `durationSeconds` (evergreen), `targeting`, `appearance`. → `201` |
 | GET | `/api/timers/:id` | Fetch one timer. When `targeting.mode` isn't `all`, includes `targeting.resources` (product/collection titles resolved live via Admin GraphQL). |
-| PATCH | `/api/timers/:id` | Partially update a timer. Same validation as create, applied to the merged document. |
+| PATCH | `/api/timers/:id` | Partially update a timer. Same validation as create, applied to the merged document. Optional body field `expectedUpdatedAt`: the `updatedAt` the caller last fetched — if it no longer matches, the request fails with `409` instead of silently overwriting a change made elsewhere (optimistic concurrency; omit to update unconditionally). |
 | DELETE | `/api/timers/:id` | Delete a timer. → `204` |
 
 **Timer types:**

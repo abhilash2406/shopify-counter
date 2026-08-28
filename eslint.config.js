@@ -28,9 +28,9 @@ export default [
     },
   },
 
-  // Backend tests: Jest globals (describe/it/expect/jest.mock/...)
+  // Backend and frontend tests: Jest globals (describe/it/expect/jest.mock/...)
   {
-    files: ["web/backend/__tests__/**/*.js"],
+    files: ["web/backend/__tests__/**/*.js", "web/frontend/__tests__/**/*.{js,jsx}"],
     languageOptions: {
       globals: { ...globals.jest },
     },
@@ -42,6 +42,16 @@ export default [
     languageOptions: {
       sourceType: "commonjs",
       globals: { ...globals.node },
+    },
+  },
+
+  // Frontend tooling config (jest/babel) and its jsdom test-environment
+  // setup file, both loaded by Node directly as CJS.
+  {
+    files: ["web/frontend/**/*.cjs"],
+    languageOptions: {
+      sourceType: "commonjs",
+      globals: { ...globals.node, ...globals.browser },
     },
   },
 
