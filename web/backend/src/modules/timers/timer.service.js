@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Timer } from "../../models/Timer.js";
 import { NotFound } from "../../common/exceptions/index.js";
 import { sanitizeTimerInput } from "../../utils/sanitize.js";
@@ -54,6 +55,7 @@ export const listTimers = async (
 };
 // fetch timer
 export const getTimer = async (shop, id) => {
+  if (!mongoose.isValidObjectId(id)) throw new NotFound("Timer not found");
   const timer = await Timer.findOne({ _id: id, shop });
   if (!timer) throw new NotFound("Timer not found");
   return timer;
@@ -83,6 +85,7 @@ export const updateTimer = async (shop, id, input) => {
 
 // to delete a existing timer
 export const deleteTimer = async (shop, id) => {
+  if (!mongoose.isValidObjectId(id)) throw new NotFound("Timer not found");
   const result = await Timer.deleteOne({ _id: id, shop });
   if (result.deletedCount === 0) throw new NotFound("Timer not found");
 };
